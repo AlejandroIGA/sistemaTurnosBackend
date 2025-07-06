@@ -46,6 +46,17 @@ public class ProfesorController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/nombre/{nombre}")
+    public List<Profesor> getByName(@PathVariable String nombre) {
+        return profesorService.getByName(nombre);
+    }
+    
+    @GetMapping("/correo/{correo}")
+    public List<Profesor> getByEmail(@PathVariable String correo) {
+        return profesorService.getByEmail(correo);
+    }
+
+
     @PostMapping
     public ResponseEntity<?> create(@RequestBody Profesor profesor) {
         Profesor profesorDB = profesorService.save(profesor);         

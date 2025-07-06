@@ -35,6 +35,16 @@ public class ProfesorService {
         return repo.findById(id);
     }
 
+    @Transactional(readOnly = true)
+    public List<Profesor> getByName(String nombre){
+        return repo.findByNombreContainingIgnoreCaseAndActivo(nombre, true);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Profesor> getByEmail(String correo){
+        return repo.findByCorreoContainingIgnoreCaseAndActivo(correo, true);
+    }
+
     @Transactional
     public Profesor save(Profesor profesor){
         return repo.save(profesor);

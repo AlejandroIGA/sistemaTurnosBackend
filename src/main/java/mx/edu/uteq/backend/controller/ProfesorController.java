@@ -1,6 +1,7 @@
 package mx.edu.uteq.backend.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +79,8 @@ public class ProfesorController {
     }
     
     @PostMapping("/{idProfesor}/agregar/grupos")
-    public ResponseEntity<?> addProfesorGrupo(@PathVariable int idProfesor, @RequestBody List<Grupo> grupos) {        
+    public ResponseEntity<?> addProfesorGrupo(@PathVariable int idProfesor, @RequestBody Map<String, List<Grupo>> request) {        
+        List<Grupo> grupos = request.get("grupos");
         boolean status = profesorService.addProfesoresGrupos(idProfesor, grupos);
         if(status){
             return ResponseEntity.ok("Grupos asignados exitosamente.");

@@ -9,4 +9,5 @@ public class Grupo {
     private int id;
     private String nombre;
     private String carrera;
+    private boolean estado;
 }

@@ -1,5 +1,6 @@
 package mx.edu.uteq.backend.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,12 +28,34 @@ public class ProfesorService {
 
     @Transactional(readOnly = true)
     public List<Profesor> getAll(){
-        return repo.findAll();
+        
+        List<Profesor> profesores = repo.findAll();
+
+        for (Profesor profesor : profesores) {
+            List<Grupo> grupos = new ArrayList<>();
+            for (ProfesorGrupo profesorGrupo : profesor.getProfesoresGrupos()) {
+                grupos.add(grupoClient.getById(profesorGrupo.getGrupoId()));
+            }
+            profesor.setGrupos(grupos);
+        }
+
+        return profesores;
     }
 
     @Transactional(readOnly = true)
     public Optional<Profesor> getById(int id){
-        return repo.findById(id);
+        Optional<Profesor> opt =  repo.findById(id);
+        if(opt.isPresent()){
+            Profesor profesor = opt.get();
+            List <Grupo> grupos =  new ArrayList<>();
+
+            for (ProfesorGrupo profesorGrupo : profesor.getProfesoresGrupos()) {
+                grupos.add(grupoClient.getById(profesorGrupo.getGrupoId()));
+            }
+            profesor.setGrupos(grupos);
+            return Optional.of(profesor);
+        }
+        return opt;
     }
 
     @Transactional(readOnly = true)
@@ -102,33 +125,41 @@ public class ProfesorService {
     }
 
     @Transactional
-    public boolean addProfesoresGrupos (int profesorId, List<Grupo> grupos){
-        boolean allExist = false;
-        Optional<Profesor> opt = repo.findById(profesorId);
-        if(opt.isPresent()){
-            Profesor profesor = opt.get();
-            for (int i=0; i<grupos.size(); i++){
-                Grupo grupo = grupoClient.getById(grupos.get(i).getId());
-
-                if(grupo == null){
-                    allExist = false;
-                    break;
-                }
-                else{
-                    allExist = true;
-                    ProfesorGrupo profesorGrupo = new ProfesorGrupo();
-                    profesorGrupo.setGrupoId(grupo.getId());
-
-                    profesor.addProfesoresGrupos(profesorGrupo);
-                }
-            }
-            if(allExist){
-                repo.save(profesor);
-                return true;
-            }
-        }
+public boolean addProfesoresGrupos(int profesorId, List<Grupo> grupos) {
+    // Validaciones iniciales
+    if (grupos == null || grupos.isEmpty()) {
         return false;
     }
+    
+    Optional<Profesor> opt = repo.findById(profesorId);
+    if (opt.isEmpty()) {
+        return false;
+    }
+    
+    Profesor profesor = opt.get();
+    List<ProfesorGrupo> profesoresGrupos = new ArrayList<>();
+    
+    // Validar existencia y preparar objetos en una sola pasada
+    for (Grupo grupoInput : grupos) {
+        Grupo grupo = grupoClient.getById(grupoInput.getId());
+        if (grupo == null) {
+            return false; // Transacción se revierte automáticamente
+        }
+        
+        // Preparar el objeto ProfesorGrupo
+        ProfesorGrupo profesorGrupo = new ProfesorGrupo();
+        profesorGrupo.setGrupoId(grupo.getId());
+        profesoresGrupos.add(profesorGrupo);
+    }
+    
+    // Si llegamos aquí, todos existen, agregar todos de una vez
+    for (ProfesorGrupo profesorGrupo : profesoresGrupos) {
+        profesor.addProfesoresGrupos(profesorGrupo);
+    }
+    
+    repo.save(profesor);
+    return true;
+}
 
     @Transactional
     public boolean removeProfesoresGrupos (int profesorId, List<Grupo> grupos){

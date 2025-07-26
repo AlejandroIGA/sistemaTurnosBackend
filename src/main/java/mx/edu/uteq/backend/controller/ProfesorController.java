@@ -60,27 +60,33 @@ public class ProfesorController {
 
     @PostMapping
     public ResponseEntity<?> create(@RequestBody Profesor profesor) {
-        Profesor profesorDB = profesorService.save(profesor);         
-        return ResponseEntity.ok(profesorDB);
+        try {
+            Profesor profesorDB = profesorService.save(profesor);
+            return ResponseEntity.status(HttpStatus.CREATED).body(profesorDB);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error interno del servidor");
+        }
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> editProfesor (@PathVariable int id, @RequestBody Profesor profesor) {
-        Optional<Profesor> opt = profesorService.getById(id);
-        if(opt.isPresent()){
-            Profesor profesorDB = opt.get();
-            profesorDB.setNombre(profesor.getNombre());
-            profesorDB.setCorreo(profesor.getCorreo());
-            profesorDB.setCubiculo(profesor.getCubiculo());
-            profesorDB.setActivo(profesor.isActivo());
-            return ResponseEntity.ok(profesorService.save(profesorDB));
-        }
-        return ResponseEntity.notFound().build();
+        try {
+        Profesor profesorDB = profesorService.update(id, profesor);
+        return ResponseEntity.ok(profesorDB);
+    } catch (RuntimeException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body("Error interno del servidor");
     }
+}
     
     @PostMapping("/{idProfesor}/agregar/grupos")
-    public ResponseEntity<?> addProfesorGrupo(@PathVariable int idProfesor, @RequestBody Map<String, List<Grupo>> request) {        
-        List<Grupo> grupos = request.get("grupos");
+    public ResponseEntity<?> addProfesorGrupo(@PathVariable int idProfesor, @RequestBody List<Grupo> grupos) {        
+        //List<Grupo> grupos = request.get("grupos");
         boolean status = profesorService.addProfesoresGrupos(idProfesor, grupos);
         if(status){
             return ResponseEntity.ok("Grupos asignados exitosamente.");
@@ -116,6 +122,16 @@ public class ProfesorController {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("/eliminar/profesor/{profesorId}/grupo/{grupoId}")
+    public ResponseEntity<?> borrarGrupoProfesor(@PathVariable int profesorId, @PathVariable int grupoId){
+        boolean status = profesorService.removeProfesorGrupo(profesorId, grupoId);
+        if(status){
+            return ResponseEntity.ok("Grupo eliminado exitosamente del profesor.");
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body("No se pudo eliminar el grupo o no existe la relación.");
     }
     
 }

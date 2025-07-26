@@ -9,12 +9,18 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
 import mx.edu.uteq.backend.model.dto.Grupo;
 
 @Entity
 @Data
+@Table(name = "profesor", uniqueConstraints = {
+    @UniqueConstraint(columnNames = "correo"),
+    @UniqueConstraint(columnNames = "cubiculo")
+})
 public class Profesor {
     @Id@GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;

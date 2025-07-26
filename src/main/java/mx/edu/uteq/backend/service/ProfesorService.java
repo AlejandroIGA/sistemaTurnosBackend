@@ -60,16 +60,80 @@ public class ProfesorService {
 
     @Transactional(readOnly = true)
     public List<Profesor> getByName(String nombre){
-        return repo.findByNombreContainingIgnoreCaseAndActivo(nombre, true);
+        List<Profesor> profesores =  repo.findByNombreContainingIgnoreCaseAndActivo(nombre, true);
+        for (Profesor profesor : profesores) {
+            List<Grupo> grupos = new ArrayList<>();
+            for (ProfesorGrupo profesorGrupo : profesor.getProfesoresGrupos()) {
+                grupos.add(grupoClient.getById(profesorGrupo.getGrupoId()));
+            }
+            profesor.setGrupos(grupos);
+        }
+
+        return profesores;
     }
 
     @Transactional(readOnly = true)
     public List<Profesor> getByEmail(String correo){
-        return repo.findByCorreoContainingIgnoreCaseAndActivo(correo, true);
+        List<Profesor> profesores = repo.findByCorreoContainingIgnoreCaseAndActivo(correo, true);
+        for (Profesor profesor : profesores) {
+            List<Grupo> grupos = new ArrayList<>();
+            for (ProfesorGrupo profesorGrupo : profesor.getProfesoresGrupos()) {
+                grupos.add(grupoClient.getById(profesorGrupo.getGrupoId()));
+            }
+            profesor.setGrupos(grupos);
+        }
+
+        return profesores;
     }
 
     @Transactional
-    public Profesor save(Profesor profesor){
+    public Profesor save(Profesor profesor) throws RuntimeException {
+        // Validar que correo y cubículo no estén vacíos
+        if (profesor.getCorreo() == null || profesor.getCorreo().trim().isEmpty()) {
+            throw new RuntimeException("El correo es obligatorio");
+        }
+        if (profesor.getCubiculo() == null || profesor.getCubiculo().trim().isEmpty()) {
+            throw new RuntimeException("El cubículo es obligatorio");
+        }
+        
+        // Validar unicidad del correo
+        if (repo.existsByCorreo(profesor.getCorreo())) {
+            throw new RuntimeException("Ya existe un profesor con ese correo: " + profesor.getCorreo());
+        }
+        
+        // Validar unicidad del cubículo
+        if (repo.existsByCubiculo(profesor.getCubiculo())) {
+            throw new RuntimeException("Ya existe un profesor con ese cubículo: " + profesor.getCubiculo());
+        }
+        
+        return repo.save(profesor);
+}
+
+    @Transactional
+    public Profesor update(int id, Profesor profesor) throws RuntimeException {
+        Optional<Profesor> existingOpt = repo.findById(id);
+        if (existingOpt.isEmpty()) {
+            throw new RuntimeException("Profesor no encontrado");
+        }
+        
+        // Validar que correo y cubículo no estén vacíos
+        if (profesor.getCorreo() == null || profesor.getCorreo().trim().isEmpty()) {
+            throw new RuntimeException("El correo es obligatorio");
+        }
+        if (profesor.getCubiculo() == null || profesor.getCubiculo().trim().isEmpty()) {
+            throw new RuntimeException("El cubículo es obligatorio");
+        }
+        
+        // Validar unicidad excluyendo el registro actual
+        if (repo.existsByCorreoAndIdNot(profesor.getCorreo(), id)) {
+            throw new RuntimeException("Ya existe otro profesor con ese correo: " + profesor.getCorreo());
+        }
+        
+        if (repo.existsByCubiculoAndIdNot(profesor.getCubiculo(), id)) {
+            throw new RuntimeException("Ya existe otro profesor con ese cubículo: " + profesor.getCubiculo());
+        }
+        
+        profesor.setId(id);
         return repo.save(profesor);
     }
 
@@ -102,23 +166,23 @@ public class ProfesorService {
     }
 
     @Transactional
-    public boolean removeProfesorGrupo (int profesorId, int grupoid){
+    public boolean removeProfesorGrupo (int profesorId, int grupoId){
 
         Optional<Profesor> opt = repo.findById(profesorId);//¿es necesario?
         if(opt.isPresent()){
             //Se busca al profesor para saber que Id de profesor corresponde al grupo ingresado
             Profesor profesor = opt.get();
             //Se busca al grupo para saber si todavía existe, al ser un sistema distribuido puede eliminarse el regstro sin ser notificados
-            Grupo grupo = grupoClient.getById(grupoid);
+            Grupo grupo = grupoClient.getById(grupoId);
             if(grupo != null){
-                ProfesorGrupo profesorGrupo = new ProfesorGrupo();
-                profesorGrupo.setGrupoId(grupoid);
-
-                profesor.removeProfesoresGrupos(profesorGrupo);
-
+                boolean removed = profesor.getProfesoresGrupos().removeIf(
+                pg -> pg.getGrupoId() == grupoId
+            );
+            
+            if (removed) {
                 repo.save(profesor);
-
                 return true;
+            }
             }
         }
         return false;

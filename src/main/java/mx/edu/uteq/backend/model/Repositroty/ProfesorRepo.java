@@ -23,4 +23,6 @@ public interface ProfesorRepo extends JpaRepository <Profesor, Integer> {
     // Para validaciones en actualizaciones (excluir el propio registro)
     boolean existsByCorreoAndIdNot(String correo, int id);
     boolean existsByCubiculoAndIdNot(String cubiculo, int id);
+
+    Optional<Profesor> findByIdUsuario(Integer idUsuario);
 }

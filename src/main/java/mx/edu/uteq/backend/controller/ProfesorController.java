@@ -1,5 +1,6 @@
 package mx.edu.uteq.backend.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -134,4 +135,35 @@ public class ProfesorController {
             .body("No se pudo eliminar el grupo o no existe la relación.");
     }
     
+    // Conexión con solicitudes para obtener profesores de un grupo
+    @GetMapping("/grupo/{grupoId}")
+    public ResponseEntity<List<Profesor>> getProfesoresByGrupo(@PathVariable int grupoId) {
+        try {
+            List<Profesor> profesores = profesorService.findByGrupoId(grupoId);
+
+            if (profesores != null && !profesores.isEmpty()) {
+                return ResponseEntity.ok(profesores);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            System.err.println("Error al obtener los profesores del grupo: " + e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/usuario/{idUsuario}")
+    public ResponseEntity<Map<String, Integer>> getIdsByUsuarioId(@PathVariable("idUsuario") Integer idUsuario) {
+        Optional<Profesor> optionalProfesor = profesorService.findByIdUsuario(idUsuario);
+
+        if (optionalProfesor.isPresent()) {
+            Profesor profesor = optionalProfesor.get();
+            Map<String, Integer> response = new HashMap<>();
+            response.put("idProfesor", profesor.getId());
+            response.put("idUsuario", profesor.getIdUsuario());
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

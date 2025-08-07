@@ -3,6 +3,7 @@ package mx.edu.uteq.backend.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -262,6 +263,23 @@ public boolean addProfesoresGrupos(int profesorId, List<Grupo> grupos) {
             return true;
         }
         return false;
+    }
+
+    public List<Profesor> findByGrupoId(Integer grupoId) {
+        List<Profesor> todosLosProfesores = repo.findAll();
+
+        List<Profesor> profesoresDelGrupo = todosLosProfesores.stream()
+            .filter(profesor -> {
+                return profesor.getProfesoresGrupos().stream()
+                    .anyMatch(pg -> pg.getGrupoId() == grupoId);
+            })
+            .collect(Collectors.toList());
+
+        return profesoresDelGrupo;
+    }
+
+    public Optional<Profesor> findByIdUsuario(Integer idUsuario) {
+        return repo.findByIdUsuario(idUsuario);
     }
 
 }

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import mx.edu.uteq.backend.model.Entity.Profesor;
 import mx.edu.uteq.backend.model.dto.Grupo;
 
-@FeignClient(name = "grupos", url = "localhost:8080") //Modificar después
+@FeignClient(name = "grupos", url = "localhost:8081") //Modificar después
 public interface GrupoRest {
     @GetMapping("/api/grupo/{id}")
     Grupo getById(@PathVariable int id);

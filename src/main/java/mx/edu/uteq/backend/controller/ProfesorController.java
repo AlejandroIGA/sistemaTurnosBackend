@@ -173,4 +173,16 @@ public class ProfesorController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @PutMapping("/{idProfesor}/asignar-usuario/{idUsuario}")
+    public ResponseEntity<?> asignarUsuarioAProfesor(@PathVariable int idProfesor, @PathVariable int idUsuario) {
+        Optional<Profesor> opt = profesorService.getById(idProfesor);
+        if (opt.isPresent()) {
+            Profesor profesor = opt.get();
+            profesor.setIdUsuario(idUsuario);
+            profesorService.update(idProfesor, profesor);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
 }

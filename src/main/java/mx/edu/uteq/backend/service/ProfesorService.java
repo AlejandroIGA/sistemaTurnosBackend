@@ -27,6 +27,7 @@ public class ProfesorService {
     @Autowired
     private ProfesorGrupoRepo profesorGrupoRepo;
 
+
     @Transactional(readOnly = true)
     public List<Profesor> getAll(){
         
@@ -57,6 +58,11 @@ public class ProfesorService {
             return Optional.of(profesor);
         }
         return opt;
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Profesor> getByIdUsuario(int id){
+        return repo.findByIdUsuario(id);
     }
 
     @Transactional(readOnly = true)

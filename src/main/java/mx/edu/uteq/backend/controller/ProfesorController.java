@@ -41,6 +41,13 @@ public class ProfesorController {
         return profesorService.getAll();
     }
 
+    @GetMapping("/my/usuario/{id}")
+    public ResponseEntity<?> getByIdUsuario(@PathVariable int id) {
+        return profesorService.getByIdUsuario(id)
+        .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable int id) {
         return profesorService.getById(id)

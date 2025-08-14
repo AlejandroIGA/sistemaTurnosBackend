@@ -140,7 +140,12 @@ public class ProfesorService {
 
     @Transactional
     public void deleteById(int id){
-        repo.deleteById(id);
+        Optional<Profesor> opt = repo.findById(id);
+        if (opt.isPresent()){
+            Profesor profesor = opt.get();
+            profesor.setActivo(false);
+            repo.save(profesor);
+        }
     }
 
     @Transactional

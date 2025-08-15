@@ -28,7 +28,7 @@ public class Profesor {
     private String correo;
     private String cubiculo;
     private boolean activo;
-    private int idUsuario;
+    private Integer idUsuario;
 
     @Transient
     private List<Grupo> grupos;

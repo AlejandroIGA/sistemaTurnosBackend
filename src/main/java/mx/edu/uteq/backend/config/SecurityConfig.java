@@ -24,7 +24,7 @@ public class SecurityConfig {
         .authorizeHttpRequests((authHttp) -> authHttp
             .requestMatchers(HttpMethod.GET, "/api/profesor/grupo/**").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/profesor/usuario/**").permitAll()
-            .requestMatchers(HttpMethod.GET, "/api/profesor/**").hasRole("ADMIN")
+            .requestMatchers(HttpMethod.GET, "/api/profesor/**").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/profesor").hasRole("ADMIN")
             .requestMatchers(HttpMethod.PUT, "/api/profesor/**").hasRole("ADMIN")
             .requestMatchers(HttpMethod.DELETE, "/api/profesor/**").hasRole("ADMIN")
